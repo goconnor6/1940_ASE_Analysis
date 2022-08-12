@@ -14,6 +14,10 @@ import numpy as np
 from scipy import stats, signal
 from mpl_toolkits import basemap
 
+recon_dir = 'Data/Reconstruction/'
+model_dir = 'Data/Model/'
+verif_dir = 'Data/Verification/' #contains ERA5, ERSST
+
 #%%
 #LOADING TIME SERIES DATA------------------------------------------------------
 
@@ -61,7 +65,7 @@ def load_1d_recon(run,var,time_per,region,anom_ref=None):
     start,stop = time_per
     
     #get specified data
-    path = 'LMR_output/'+run+'_'+var+'.nc'
+    path = recon_dir+run+'_'+var+'.nc'
     ds = xr.open_dataset(path)
     ds = ds.sel(time=slice(start,stop),lat = slice(lat1,lat2),lon=slice(lon1,lon2))
     data = ds.get(var)
@@ -130,7 +134,7 @@ def load_1d_recon_full_ens(run,var,time_per,region):
     start,stop = time_per
     
     #get specified data
-    path = 'LMR_output/Full_Ensemble/'+run+'_'+var+'_full.nc'
+    path = recon_dir+'Full_Ensemble/'+run+'_'+var+'_full.nc'
     ds = xr.open_dataset(path)
     ds = ds.sel(time=slice(start,stop),lat = slice(lat1,lat2),lon=slice(lon1,lon2))
     data = ds.get(var)
@@ -175,7 +179,7 @@ def load_3d_recon(run,var,time_per,anom_ref = None):
 
     
     #get specified data
-    path = 'LMR_output/'+run+'_'+var+'.nc'
+    path = recon_dir+run+'_'+var+'.nc'
     ds = xr.open_dataset(path)
     start,stop = time_per
     ds = ds.sel(time=slice(start,stop))
@@ -246,7 +250,7 @@ def load_1d_era5(var,time_per,region,anom_ref=None):
     start,stop = time_per
     
     #get data
-    path = 'Model/ERA5/annual_'+var+'_1979_2019.nc' 
+    path = verif_dir+'ERA5/annual_'+var+'_1979_2019.nc' 
     ds = xr.open_dataset(path)
     ds = ds.sel(time=slice(start,stop),lat=slice(lat2,lat1),lon=slice(lon1,lon2))
     data = ds.get(var) #shape n_years,n_lats,n_lons
@@ -307,7 +311,7 @@ def load_3d_era5(var,time_per,anom_ref=None,asc_lats=False,regrid=None):
     start,stop = time_per
     
     #get data
-    path = 'Model/ERA5/annual_'+var+'_1979_2019.nc' 
+    path = verif_dir+'ERA5/annual_'+var+'_1979_2019.nc' 
     ds = xr.open_dataset(path)
     ds = ds.sel(time=slice(start,stop))
     if asc_lats:
@@ -323,7 +327,7 @@ def load_3d_era5(var,time_per,anom_ref=None,asc_lats=False,regrid=None):
         era_lat = np.array(ds.lat)
         
         #get recon grid info for interpolating era5
-        ds_recon = xr.open_dataset('LMR_output/'+regrid+'_u10.nc')
+        ds_recon = xr.open_dataset(recon_dir+regrid+'_u10.nc')
         recon_lon,recon_lat = ds_recon.lon,ds_recon.lat
         new_lons, new_lats = np.meshgrid(recon_lon,recon_lat)
         
@@ -404,7 +408,7 @@ def load_1d_dal_recon(var,time_per,region,anom_ref=None):
     #get timing info
     start,stop = time_per
     
-    path = 'Verification/Dalaiden_2021/'+var+'_ano_annual_recon-antarctic_1800-2000.nc'
+    path = recon_dir+'Dalaiden_2021/'+var+'_ano_annual_recon-antarctic_1800-2000.nc'
     ds = xr.open_dataset(path,decode_times=False)
     ds = ds.sel(lat=slice(lat1,lat2),lon=slice(lon1,lon2))
     data = ds.get(var)
@@ -476,7 +480,7 @@ def load_1d_clim_model_concat_ens(model,vname,region,isolate_nat=False,adj_lens_
                 '011','012','013','014','015','016','017','018','019','020',\
                 '021','022','023','024','025','026','027','028','029','030',\
                 '031','032','033','034','035','101','102','103','104','105']
-        fname1 = 'Model/LENS/annual_'+vname+'_LENS_ens_'
+        fname1 = model_dir+'LENS_hist/annual_'+vname+'_LENS_ens_'
         fname2 = '_1920_2005.nc'
         # n_model_yrs = len(ens_mems)*86
         print('concatenating 3440 years (40 ensembles from 1920 to 2005) in LENS historical')
@@ -485,7 +489,7 @@ def load_1d_clim_model_concat_ens(model,vname,region,isolate_nat=False,adj_lens_
         #get LENS EM to remove from each member if you want to isolate the natural component
         if isolate_nat:
             print('removing LENS EM...')
-            fname = 'Model/LENS/annual_'+vname+'_LENS_ens_mean_1920_2005.nc'
+            fname = model_dir+'LENS_hist/annual_'+vname+'_LENS_ens_mean_1920_2005.nc'
             ds = xr.open_dataset(fname)
             ds = ds.sel(lat = slice(lat1,lat2),lon=slice(lon1,lon2)) 
             em_data = ds.get(vname) #shape (86,2,11)
@@ -514,7 +518,7 @@ def load_1d_clim_model_concat_ens(model,vname,region,isolate_nat=False,adj_lens_
         f_years_2 = np.linspace(499,2199,(2199-499)//100+1)
         ens_mems_2 = [str(int(year)) for year in f_years_2]
         ens_mems = [e1+'_'+e2 for e1,e2 in zip(ens_mems_1,ens_mems_2)]
-        fname1 = 'Model/LENS_preindustrial/annual_'+vname+'_LENS_preindustrial_'
+        fname1 = model_dir+'LENS_preindustrial/annual_'+vname+'_LENS_preindustrial_'
         fname2 = '.nc'
         # n_model_yrs = len(ens_mems) * 100 + 1 #+1 bc last member is 1 yr longer
         model_time = np.linspace(400,2200,2200-400+1)
@@ -581,7 +585,7 @@ def load_1d_clim_model_em(model,vname,region):
        
     #get ensemble mean for putting in anomaly space----------------------------
     if model == 'LENS_hist':
-        fname = 'Model/LENS/annual_'+vname+'_LENS_ens_mean_1920_2005.nc'
+        fname = model_dir+'LENS_hist/annual_'+vname+'_LENS_ens_mean_1920_2005.nc'
         ds = xr.open_dataset(fname)
         ds = ds.sel(lat = slice(lat1,lat2),lon=slice(lon1,lon2)) 
         em_data = ds.get(vname) #shape (86,2,11)
@@ -631,13 +635,13 @@ def load_1d_clim_model_anom(model,vname,anom_ref,region):
                 '011','012','013','014','015','016','017','018','019','020',\
                 '021','022','023','024','025','026','027','028','029','030',\
                 '031','032','033','034','035','101','102','103','104','105']
-        fname1 = 'Model/LENS/annual_'+vname+'_LENS_ens_'
+        fname1 = model_dir+'LENS_hist/annual_'+vname+'_LENS_ens_'
         fname2 = '_1920_2005.nc'
         # n_model_yrs = len(ens_mems)*86
         print('concatenating 3440 years (40 ensembles from 1920 to 2005) in LENS')
         
         #get ensemble mean for anomaly calculation
-        fname = 'Model/LENS/annual_'+vname+'_LENS_ens_mean_1920_2005.nc'
+        fname = model_dir+'LENS_hist/annual_'+vname+'_LENS_ens_mean_1920_2005.nc'
         ds = xr.open_dataset(fname)
         ds = ds.sel(time = slice(anom_ref[0],anom_ref[1]),lat = slice(lat1,lat2),\
                     lon=slice(lon1,lon2)) 
@@ -661,7 +665,7 @@ def load_1d_clim_model_anom(model,vname,anom_ref,region):
         f_years_2 = np.linspace(499,2199,(2199-499)//100+1)
         ens_mems_2 = [str(int(year)) for year in f_years_2]
         ens_mems = [e1+'_'+e2 for e1,e2 in zip(ens_mems_1,ens_mems_2)]
-        fname1 = 'Model/LENS_preindustrial/annual_'+vname+'_LENS_preindustrial_'
+        fname1 = model_dir+'LENS_preindustrial/annual_'+vname+'_LENS_preindustrial_'
         fname2 = '.nc'
         # n_model_yrs = len(ens_mems) * 100 + 1 #+1 bc last member is 1 yr longer
         model_time = np.linspace(400,2200,2200-400+1)
@@ -737,7 +741,7 @@ def calc_nino_idx(region,version,time_per):
     start,stop = time_per
     
     #load data
-    path = 'Verification/annual_ersst'+version+'_1854_2019.nc'
+    path = verif_dir + 'annual_ersst'+version+'_1854_2019.nc'
     ds = xr.open_dataset(path)
     ds = ds.sel(time=slice(start,stop),lat = slice(lat2,lat1),\
                         lon = slice(lon1,lon2))
