@@ -1,8 +1,5 @@
 1940_ASE_Analysis
 
-Contains scripts for generating Figures in O'Connor et al. study on the 1940 wind event
-in the Amundsen Sea. 
-
 Figure_x.py files are used for generating each figure in the study and 
 corresponding analyses. 
 
