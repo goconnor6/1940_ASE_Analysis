@@ -19,8 +19,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy import signal
 from Functions_1940_analysis import load_1d_data, calc_1d_corr, calc_1d_ce
-from Datasets_1940_Analysis import cesm_recon, pace_recon, cesm_coral_recon,\
-    recon_dir, verif_dir
+from Datasets_1940_Analysis import *
 
 
 
@@ -34,12 +33,12 @@ recon_start,recon_stop = 1900,2005
 time_per = recon_start,recon_stop
 
 #CESM recons
-cesm_psl_path = recon_dir + cesm_recon.run + '_psl.nc'
-cesm_u10_path = recon_dir + cesm_recon.run + '_u10.nc'
-cesm_g_u10_path = recon_dir + cesm_recon.run +'_g_u10.nc'
-cesm_coral_psl_path = recon_dir + cesm_coral_recon.run + '_psl.nc'
+cesm_psl_path = cesm_recon.path.replace('*vname*','psl')
+cesm_u10_path = cesm_recon.path.replace('*vname*','u10')
+cesm_g_u10_path = cesm_recon.path.replace('*vname*','g_u10')
+cesm_coral_psl_path = cesm_coral_recon.path.replace('*vname*','psl')
 
-cesm_recon_psl = load_1d_data( cesm_psl_path, 'psl', region, time_per, = time_per, \
+cesm_recon_psl = load_1d_data( cesm_psl_path, 'psl', region, time_per = time_per, \
                                   anom_ref = anom_ref, np_array = True)
 cesm_recon_u = load_1d_data( cesm_u10_path, 'u10', region, time_per = time_per, \
                                   anom_ref = anom_ref, np_array = True)
@@ -49,9 +48,9 @@ cesm_coral_recon_psl = load_1d_data( cesm_coral_psl_path, 'psl', region,\
                                     time_per = time_per, anom_ref = anom_ref, np_array = True)
     
 #PACE recons
-pace_psl_path = recon_dir + pace_recon.run + '_psl.nc'
-pace_u10_path = recon_dir + pace_recon.run + '_u10.nc'
-pace_g_u10_path = recon_dir + pace_recon.run + '_g_u10.nc'
+pace_psl_path = pace_recon.path.replace('*vname*','psl')
+pace_u10_path = pace_recon.path.replace('*vname*','u10')
+pace_g_u10_path = pace_recon.path.replace('*vname*','g_u10')
 
 pace_recon_psl = load_1d_data( pace_psl_path, 'psl', region, time_per = time_per, \
                                    anom_ref = anom_ref, np_array = True)
@@ -65,15 +64,15 @@ recon_time = np.linspace(recon_start,recon_stop,recon_stop - recon_start + 1)
 
 #get ERA5 
 era_psl = load_1d_data( verif_dir + '/ERA5/annual_psl_1979_2019.nc', 'psl', \
-                                [1979,2005], 'ASE', anom_ref = anom_ref, np_array = True)
+                                region, [1979,2005], anom_ref = anom_ref, np_array = True)
 era_u = load_1d_data( verif_dir + '/ERA5/annual_u1000_1979_2019.nc', 'u1000', \
-                              [1979,2005], 'ASE', anom_ref = anom_ref, np_array = True)
+                               region, [1979,2005],anom_ref = anom_ref, np_array = True)
 era_time = np.linspace(1979, 2005, 2005-1979+1)
 
 #Calc nino3.4 index
 # nino_time,nino34_idx = calc_nino_idx('Nino3.4','v5',time_per)
 nino34_data = load_1d_data(verif_dir + 'annual_ersstv5_1854_2019.nc','sst',\
-                          time_per,'Nino3.4')
+                          'Nino3.4',time_per)
 nino34_idx = nino34_data - nino34_data.mean()
     
 
@@ -113,7 +112,7 @@ fig.set_size_inches(4,4.5)
 #plot SLP----------------------------------
 ax0 = fig.add_subplot(311)
 ax0.plot(recon_time, cesm_recon_psl, color = cesm_recon.psl_color, \
-         label = recon_stats[0], linewidth = lw)
+         label = recon_stats[0], linewidth = lw,zorder=1)
 ax0.plot(recon_time, pace_recon_psl, color = pace_recon.psl_color, \
          label = recon_stats[1], linewidth = lw,zorder = 0)
 ax0.plot(era_time,era_psl,color = 'black',label = 'ERA5',linewidth = lw-.2)
@@ -125,12 +124,12 @@ ax0.set_ylabel('SLP anomaly (hPa)')
 ax1 = fig.add_subplot(312)
 ax1.plot(recon_time, cesm_recon_u, color = cesm_recon.u10_color,zorder=1,\
          label = recon_stats[2], linewidth = lw)
-ax1.plot(recon_time, cesm_recon_g_u, color = cesm_recon.g_u10_color,\
-         label = recon_stats[4].split('\n')[-1], linewidth = lw,linestyle = '-')
+ax1.plot(recon_time, cesm_recon_g_u, color = cesm_recon.g_u10_color,zorder=0,\
+         label = recon_stats[4].split('\n')[-1], linewidth = lw-.3,linestyle = '-')
 ax1.plot(recon_time, pace_recon_u, color = pace_recon.u10_color,zorder = 1,\
          label = recon_stats[3], linewidth = lw)
 ax1.plot(recon_time, pace_recon_g_u, color = pace_recon.g_u10_color,zorder = 0,\
-         label = recon_stats[5].split('\n')[-1], linewidth = lw,linestyle = '-')
+         label = recon_stats[5].split('\n')[-1], linewidth = lw-.3,linestyle = '-')
 ax1.plot(era_time,era_u,color = 'black',label = 'ERA5',linewidth = lw-0.2)
 ax1.set_ylim(-2.5,1.7)
 ax1.set_yticks([-1.2,-0.6,0,0.6,1.2])
@@ -144,7 +143,7 @@ l1  =  ax2.plot(recon_time, cesm_recon_psl_dt, color = cesm_recon.psl_color,\
               label = cesm_recon.name)
 recon_coral_psl_dt = signal.detrend(cesm_coral_recon_psl)
 l3  =  ax2.plot(recon_time,recon_coral_psl_dt,\
-                color = cesm_coral_recon.psl_color,label = 'CESM LM Recon, corals only')
+                color = cesm_coral_recon.psl_color,label = cesm_recon.name+', corals only')
 ax2.set_ylim([-8,5.8])
 ax2.set_yticks([-4,-2,0,2,4])
 ax2.set_ylabel('SLP anomaly (hPa)',fontsize = fs-1)

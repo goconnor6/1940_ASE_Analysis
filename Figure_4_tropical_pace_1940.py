@@ -83,7 +83,7 @@ datasets = [pace_em_psl_anom, mem_psl_data[0],mem_psl_data[1],\
              pace_em_u10_anom, mem_u10_data[0],mem_u10_data[1]]
 lon, lat = pace_em_psl_anom.lon, pace_em_psl_anom.lat
 
-labels = ['PACE EM',f'PACE Ens {int(mems[0])}',f'PACE Ens {int(mems[1])}']*2
+labels = ['PACE EM',f'Ens {int(members[0])}',f'Ens {int(members[1])}']*2
 letters = ['a','b','c','d','e','f']
 start,stop = time_per
 years = np.linspace(start,stop,stop-start+1,dtype=int)
@@ -100,7 +100,7 @@ n_levs = 9
 # Plot one year at a time 
 maps = []
 fig = plt.figure()
-fig.set_size_inches(5.7,3.5)
+fig.set_size_inches(6,3.5)
 for col in range(n_cols):
     
     for year_idx in range(n_years):
@@ -121,7 +121,7 @@ for col in range(n_cols):
                 plt.ylabel(years[year_idx],fontsize=fs-1,labelpad=16)
                 mp.drawparallels(np.arange(-90,90,n_lat_lines),\
                               labels=[True,False,False,False],\
-                              fontsize=fs-4,linewidth=0.5)
+                              fontsize=fs-4.5,linewidth=0.5)
         # U10
         else:
             mp = Basemap(projection='lcc',lat_0=-71,lon_0=250,\
@@ -134,7 +134,7 @@ for col in range(n_cols):
             if col == n_cols-1:
                 mp.drawparallels(np.arange(-90,90,n_lat_lines),\
                               labels=[False,True,False,False],\
-                              fontsize=fs-4,linewidth=0.5)
+                              fontsize=fs-4.5,linewidth=0.5)
             # Add box in ASE shelf break region
             lat1,lat2,lon1,lon2 = region_dict['ASE SB']
             x1,y1 = mp(lon2,lat1) 
@@ -147,7 +147,7 @@ for col in range(n_cols):
             
         mp.drawparallels(np.arange(-90,90,n_lat_lines),\
                               labels=[False,False,False,False],\
-                              fontsize=fs-4,linewidth=0.5)
+                              fontsize=fs-4.5,linewidth=0.5)
         mp.drawmeridians(np.arange(0,360,50),
                           labels=[False,False,False,False],\
                           linewidth=0.5)
@@ -162,7 +162,6 @@ for col in range(n_cols):
         
     maps.append(mp)
 
-plt.subplots_adjust(left = 0.06,right = 0.95, bottom = 0.2, top = 0.96, wspace = 0.25)
 
 # Add 2 colorbars
 xpos = .09
@@ -181,7 +180,7 @@ for i in range(2):
     cb.set_ticks([-lims[i],0,lims[i]])
     cb.set_ticklabels([-lims[i],0,lims[i]])
         
-plt.subplots_adjust(wspace=0.1,hspace=0.1,top = 0.94,bottom=0.12,right=0.96,left=0.07)
+plt.subplots_adjust(wspace=0.1,hspace=0.1,top = 0.94,bottom=0.125,right=0.95,left=0.07)
 
 # plt.savefig('Plots/Figure_4_tropical_pacemaker_1940_maps.png',dpi=600)
 

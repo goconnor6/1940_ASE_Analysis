@@ -7,7 +7,7 @@ Created on Mon Dec 26 16:39:11 2022
 """
 
 import numpy as np
-from Functions_1940_analysis_v2 import load_1d_data, load_3d_data
+from Functions_1940_analysis import load_1d_data, load_3d_data
 
 
 #%%
@@ -18,27 +18,32 @@ recon_dir = 'Data/Reconstruction/' #Contains all O'Connor et al. recons and Dala
 model_dir = 'Data/Model/' #Contains Pacemaker ensemble, CESM PreIndustrial Ctrl simulation, LENS historical ensemble
 verif_dir = 'Data/Verification/' #contains ERA5, ERSST
 
-#Reconstruction names (corresponding to filenames)
-#change the names of these to match published names
-run72 = 'iCESM_LME_GKO1_all_lin_1mc_1900_2005_GISBrom_1880_2019_1deg_res_full_ens'
-run73 = 'HadCM3_all_lin_1mc_1900_2005_GISBrom_1880_2019_1deg_res_full_ens'
-run78 = 'PACE_super_GKO1_all_linPSM_1mc_1900_2005_GISBrom_1880_2019_1_deg_res_full_ens'
-run82 = 'LENS_super_GKO1_all_linPSM_1mc_1800_2005_GISBrom_1880_2019'
+# Reconstruction names (corresponding to filenames)
+# To do: change the names of these to match published names
+run72 = 'iCESM_LME_GKO1_all_lin_1mc_1900_2005_GISBrom_1880_2019_1deg_res_full_ens_*vname*.nc'
+run73 = 'HadCM3_all_lin_1mc_1900_2005_GISBrom_1880_2019_1deg_res_full_ens_*vname*.nc'
+run78 = 'PACE_super_GKO1_all_linPSM_1mc_1900_2005_GISBrom_1880_2019_1_deg_res_full_ens_*vname*.nc'
+run82 = 'LENS_super_GKO1_all_linPSM_1mc_1800_2005_GISBrom_1880_2019_*vname*.nc'
+dal_run = 'Dalaiden_2021_*vname*_ano_annual_recon-antarctic_1800-2000.nc'
 
-#single proxy runs
-run26 = 'icesm_lme_GKO1_coral_only_lin_1mc_1900_2005' 
-run51 = 'iCESM_LME_GKO1_ice_only_1mc_1900_2005_psm_calib_GISBrom_1880_2019'
-run52 = 'PACE_super_GKO1_ice_only_1mc_1900_2005_psm_calib_GISBrom_1880_2019'
-run31 = 'pace_super_GKO1_coral_only_lin_1mc_1900_2005' 
+# Single proxy runs
+run26 = 'icesm_lme_GKO1_coral_only_lin_1mc_1900_2005_*vname*.nc' 
+run51 = 'iCESM_LME_GKO1_ice_only_1mc_1900_2005_psm_calib_GISBrom_1880_2019_*vname*.nc'
+run52 = 'PACE_super_GKO1_ice_only_1mc_1900_2005_psm_calib_GISBrom_1880_2019_*vname*.nc'
+run31 = 'pace_super_GKO1_coral_only_lin_1mc_1900_2005_*vname*.nc' 
 
-# Edit path to match recon filenames. There must be one file for each variable
+# User: Edit path to match recon filenames. There must be one file for each variable
 # Instead of writing each variable in the path, use '*vname*' and the function will replace the vname
-cesm_recon_path = recon_dir + run72 + '_*vname*.nc'
-pace_recon_path = recon_dir + run78 + '_*vname*.nc'
-cesm_coral_recon_path = recon_dir + run26 + '_*vname*.nc'
-cesm_ice_recon_path = recon_dir + run51 + '_*vname*.nc'
-pace_coral_recon_path = recon_dir + run31 + '_*vname*.nc'
-pace_ice_recon_path = recon_dir + run52 + '_*vname*.nc'
+cesm_recon_path = recon_dir + run72 
+pace_recon_path = recon_dir + run78 
+cesm_coral_recon_path = recon_dir + run26 
+cesm_ice_recon_path = recon_dir + run51
+pace_coral_recon_path = recon_dir + run31 
+pace_ice_recon_path = recon_dir + run52
+# These recons are for making Figure A1, not used in the main analyses
+hadcm_recon_path = recon_dir + run73 
+lens_recon_path = recon_dir + run82 
+dal_recon_path = recon_dir + dal_run
 
 # paths for full reconstruction ensmeble
 cesm_recon_ens_path = recon_dir + 'Full Ensemble/' + run72 + '_*vname*_full.nc'
@@ -133,23 +138,28 @@ class Reconstruction:
         return scram_ens
         
         
-
-cesm_recon = Reconstruction('CESM LM recon', cesm_recon_path, '#253494', '#993404')
+# Primary recons used in analysis
+cesm_recon = Reconstruction('Natural-prior recon', cesm_recon_path, '#253494', '#993404')
 cesm_recon.add_g_u10_color('#cc4c02')
 cesm_recon.add_ens_path(cesm_recon_ens_path)
 
-pace_recon = Reconstruction('PACE recon', pace_recon_path, '#41b6c4', '#ec7014')
+pace_recon = Reconstruction('Anthro-prior recon', pace_recon_path, '#41b6c4', '#ec7014')
 pace_recon.add_g_u10_color('#fe9929')
 pace_recon.add_ens_path(pace_recon_ens_path)
 
-cesm_coral_recon = Reconstruction('CESM LM coral only recon',\
-                                  cesm_coral_recon_path,'indianred',None)
-cesm_ice_recon = Reconstruction('CESM LM ice only recon',cesm_ice_recon_path,None,None)
+# Single proxy recons generated in O'Connor et al. 1940 study
+cesm_coral_recon = Reconstruction('Natural-prior coral only recon',\
+                                  cesm_coral_recon_path,'#ce1256',None)
+cesm_ice_recon = Reconstruction('Natural-prior ice only recon',cesm_ice_recon_path,None,None)
 
-pace_coral_recon = Reconstruction('PACE LM coral only recon',\
+pace_coral_recon = Reconstruction('Anthro-prior coral only recon',\
                                   pace_coral_recon_path,'indianred',None)
-pace_ice_recon = Reconstruction('PACE LM ice only recon',pace_ice_recon_path,None,None)
+pace_ice_recon = Reconstruction('Anthro-prior ice only recon',pace_ice_recon_path,None,None)
 
+# Comparison reconstructions from O'Connor et al. 2021 and Dalaiden et al. 2021
+hadcm_recon = Reconstruction('OConnor 2021 HadCM recon',hadcm_recon_path,None,None)
+lens_recon = Reconstruction('OConnor 2021 LENS recon',lens_recon_path,None,None)
+dal_recon = Reconstruction('Dalaiaden 2021 CESM LM recon',dal_recon_path,None,None)
 
 
 #%% Model class

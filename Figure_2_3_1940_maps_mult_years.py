@@ -29,25 +29,25 @@ from Datasets_1940_Analysis import *
 start,stop = 1937,1943 
 
 # For Figure 2
-# recon1, recon2 = cesm_recon, pace_recon
+recon1, recon2 = cesm_recon, pace_recon
 
 # For Figure 3
 # recon1, recon2 = cesm_ice_recon, cesm_coral_recon
 
 # For Figure S2
-recon1, recon2 = pace_ice_recon, pace_coral_recon 
+# recon1, recon2 = pace_ice_recon, pace_coral_recon 
 
 #%% Get data
         
 time_per = [start,stop]
 
-tas_r1 = load_3d_data(recon_dir + recon1.run + '_tas.nc','tas',time_per)
-psl_r1 = load_3d_data(recon_dir + recon1.run + '_psl.nc','psl',time_per)
-u10_r1 = load_3d_data(recon_dir + recon1.run + '_u10.nc','u10',time_per)
+tas_r1 = load_3d_data(recon1.path.replace('*vname*','tas'),'tas',time_per)
+psl_r1 = load_3d_data(recon1.path.replace('*vname*','psl'),'psl',time_per)
+u10_r1 = load_3d_data(recon1.path.replace('*vname*','u10'),'u10',time_per)
     
-tas_r2 = load_3d_data(recon_dir + recon2.run + '_tas.nc','tas',time_per)
-psl_r2 = load_3d_data(recon_dir + recon2.run + '_psl.nc','psl',time_per)
-u10_r2 = load_3d_data(recon_dir + recon2.run + '_u10.nc','u10',time_per)
+tas_r2 = load_3d_data(recon2.path.replace('*vname*','tas'),'tas',time_per)
+psl_r2 = load_3d_data(recon2.path.replace('*vname*','psl'),'psl',time_per)
+u10_r2 = load_3d_data(recon2.path.replace('*vname*','u10'),'u10',time_per)
 
     
 #%% Plot data
@@ -99,9 +99,9 @@ for col in range(n_cols):
             cm = 'RdBu_r'
             if year_idx == 0:
                 if col == 1:
-                    plt.title('a) '+recon1.name + 'struction',pad=5,fontsize=fs-.5)
+                    plt.title('a) '+recon1.name + 'struction',pad=5,fontsize=fs-1)
                 else:
-                    plt.title('b) '+recon2.name + 'struction',pad=5,fontsize=fs-.5)
+                    plt.title('b) '+recon2.name + 'struction',pad=5,fontsize=fs-1)
         
         # U10
         elif col%3 == 2:

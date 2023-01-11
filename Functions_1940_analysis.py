@@ -262,16 +262,19 @@ def load_3d_data(path, vname, time_per, anom_ref = None, region = None, \
 
 
 # Need to update this one for Figure S1
-def load_1d_dal_recon(var,time_per,region,anom_ref=None):
+def load_1d_data_raw_times(path,var,time_per,region,anom_ref=None):
     
     """
     Load Dalaiden recon timeseries for specified variable in a specified region
     over specified period. Returns as numpy array.
+    Separate function to handle different time format.
     Returns SLP in hPa.
     Anom ref period 1941-1990 unless specified.
 
     Parameters
     ----------
+    path : str
+     path to file (ending in .nc)
     var : str
         Variable name corresponding to var name in .nc file
         Ex: '850hpa-Uwind','SLP','SAT'
@@ -293,14 +296,11 @@ def load_1d_dal_recon(var,time_per,region,anom_ref=None):
 
     """
     
-    #get region info
-    loc_dict = {'ASE':[-72,-70,245,258]}
-    lat1,lat2,lon1,lon2 = loc_dict[region]
     
-    #get timing info
+    #get timing and loc info
     start,stop = time_per
+    lat1,lat2,lon1,lon2 = region_dict[region]
     
-    path = recon_dir+'Dalaiden_2021/'+var+'_ano_annual_recon-antarctic_1800-2000.nc'
     ds = xr.open_dataset(path,decode_times=False)
     ds = ds.sel(lat=slice(lat1,lat2),lon=slice(lon1,lon2))
     data = ds.get(var)

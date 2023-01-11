@@ -22,7 +22,7 @@ from matplotlib.ticker import AutoMinorLocator
 import scipy.stats as stats
 from mpl_toolkits.axes_grid1.inset_locator import (inset_axes, InsetPosition,
                                                   mark_inset)
-from Functions_1940_analysis_v2 import load_1d_data
+from Functions_1940_analysis import load_1d_data
 from Datasets_1940_Analysis import *
 
 
@@ -307,124 +307,335 @@ lens_hist_u10_anom_nat = lens_hist.get_ens_anom_nat('u10', region, anom_ref)
 
 
 
-#%% 5. Make Figure 5: Plot all datasets
+#%% 5. Make Figure S3: Plot all datasets
 
-# Plot SLP on left, U on right
-# Order data to plot in subplot order (top left, top right, next row...)
-times = [recon_time,recon_time,\
-         recon_time, recon_time,\
-         recon_time, recon_time, \
-         np.linspace(0,85,86), np.linspace(0,85,86), \
-         lens_hist.time, lens_hist.time]
-datasets = [cesm_recon_psl_ens, cesm_recon_u10_ens,\
-            scram_cesm_recon_psl_nat, scram_cesm_recon_u10_nat,\
-            scram_pace_recon_psl_nat, scram_pace_recon_u10_nat,\
-            pi_ctrl_ens_psl_anom, pi_ctrl_ens_u10_anom,\
-            lens_hist_psl_anom_nat, lens_hist_u10_anom_nat]
-hi_psl_col = '#ab3f50'
-pi_psl_col = '#b38184'
-hi_u_col = '#674064'
-pi_u_col = '#9a7fa9'
-
-    
-#set up metadata to iterate through
-labels = ['a) CESM LM recon unscrambled ensemble','b) CESM LM unscrambled ensemble',\
-          'c) CESM LM recon scrambled ensemble (internal)', 'd) CESM LM recon ensemble (internal)',\
-          'e) PACE recon scrambled ensemble (internal)', 'f) PACE recon scrambled ensemble (internal)',\
-          'g) Preindustrial control ensemble','h) Preindustrial control ensemble',\
-          'i) LENS Historical ensemble (internal)','j) LENS Historical ensemble (internal)']
-cesm_recon_psl_colors = plt.cm.Blues(np.linspace(0.3,1,n_draws))
-pace_recon_psl_colors = plt.cm.Blues(np.linspace(0,0.8,n_draws))
-cesm_recon_u_colors = plt.cm.YlOrBr(np.linspace(0.3,1,n_draws))
-pace_recon_u_colors = plt.cm.Oranges(np.linspace(0,0.8,n_draws))
-colors = [cesm_recon_psl_colors[::3], cesm_recon_u_colors[::3],\
-          cesm_recon_psl_colors, cesm_recon_u_colors,\
-          pace_recon_psl_colors, pace_recon_u_colors,\
-          pi_psl_col,pi_u_col, \
-          hi_psl_col,hi_u_col]
-
+plot_all_timeseries = False
 fs = 7
 lw = 0.4
+
+if plot_all_timeseries: 
+    
+    # Plot SLP on left, U on right
+    # Order data to plot in subplot order (top left, top right, next row...)
+    times = [recon_time,recon_time,\
+             recon_time, recon_time,\
+             recon_time, recon_time, \
+             np.linspace(0,85,86), np.linspace(0,85,86), \
+             lens_hist.time, lens_hist.time]
+    datasets = [cesm_recon_psl_ens, cesm_recon_u10_ens,\
+                scram_cesm_recon_psl_nat, scram_cesm_recon_u10_nat,\
+                scram_pace_recon_psl_nat, scram_pace_recon_u10_nat,\
+                pi_ctrl_ens_psl_anom, pi_ctrl_ens_u10_anom,\
+                lens_hist_psl_anom_nat, lens_hist_u10_anom_nat]
+    
+    
+    #set up metadata to iterate through
+    labels = ['a) Natural-prior reconstruction: original ensemble',\
+              'b) Natural-prior reconstruction: original ensemble',\
+              'c) Natural-prior reconstruction: scrambled, internal', \
+              'd) Natural-prior reconstruction: scrambled, internal',\
+              'e) Anthro-prior reconstruction: scrambled, internal', \
+              'f) Anthro-prior reconstruction: scrambled, internal',\
+              'g) Preindustrial control ensemble','h) Preindustrial control ensemble',\
+              'i) LENS Historical ensemble, internal','j) LENS Historical ensemble, internal']
+    n_colors = 3
+    cesm_recon_psl_colors = plt.cm.Blues(np.linspace(0.7,1,n_colors))
+    pace_recon_psl_colors = plt.cm.Blues(np.linspace(0.4,0.8,n_colors))
+    cesm_recon_u_colors = plt.cm.YlOrBr(np.linspace(0.7,1,n_colors))
+    pace_recon_u_colors = plt.cm.Oranges(np.linspace(0.4,0.8,n_colors))
+    
+    pi_psl_col = plt.cm.PuRd(np.linspace(0.4,0.8,n_colors))
+    hi_psl_col = plt.cm.PuRd(np.linspace(0.7,1,n_colors))
+    pi_u_col = plt.cm.Purples(np.linspace(0.5,.8,n_colors))
+    hi_u_col = plt.cm.Purples(np.linspace(0.7,1,n_colors))
+    
+    colors = [cesm_recon_psl_colors, cesm_recon_u_colors,\
+              cesm_recon_psl_colors, cesm_recon_u_colors,\
+              pace_recon_psl_colors, pace_recon_u_colors,\
+              pi_psl_col,pi_u_col, \
+              hi_psl_col,hi_u_col]
+    
+    # Select every few members to plot in color
+    fig = plt.figure()
+    fig.set_size_inches(6.5,7.2)
+    axes = []
+    for i in range(10):
+        
+        # Idx for tracking colored lines
+        j = 0
+        ax = fig.add_subplot(6,2,i+1)
+        # ax.tick_params(direction="in")
+        dataset = datasets[i]
+        if i == 0 or i ==1:
+            dataset = np.transpose(np.array(dataset))
+        time = times[i]
+        lab = labels[i]
+        color = colors[i]
+        
+        # Get a range of members to plot based on values in ~1940
+        data_1940 = dataset[:,20]
+        data_1940_sort = np.sort(data_1940)
+        n_ens = len(dataset)
+        plot_ens = []
+        # Add ens containing max, min, and middle values
+        vals_to_plot = [min(data_1940_sort), max(data_1940_sort), \
+                        data_1940_sort[n_ens//2]]
+        for val in vals_to_plot:
+            plot_ens.append( np.where(data_1940 == val)[0][0])
+        
+        
+        for ens in range(n_ens):
+            
+            # Plot model data and scrambled recons
+            if ens in plot_ens:
+                if type(color) == str:
+                    col = color
+                else:
+                    col = color[j]
+                lw_ens = 1
+                z = 1
+                j += 1
+            else:
+                col = 'lightgray'
+                lw_ens = lw
+                z = 0
+            try:
+                ax.plot(time, dataset[ens], linewidth=lw_ens, color=col, zorder = z)
+            # Plot unscrambled recons
+            except:
+                ax.plot(time, dataset[:,ens], linewidth=lw_ens, color=col, zorder = z)
+        if '\n' in lab:
+            ax.annotate(lab,(0.02,.76),xycoords = 'axes fraction',\
+                    fontsize=fs)#,weight='bold')   
+        else:
+            ax.annotate(lab,(0.02,.86),xycoords = 'axes fraction',\
+                    fontsize=fs)#,weight='bold')    
+        
+        # Uncomment to annotate variances
+        # if i ==0 or i ==1:
+        #     data_var = np.var(dataset[ens,:])
+        #     ax.annotate('Variance of each member = {:.2f}'.format(data_var),\
+        #           (.02,.08), xycoords='axes fraction',fontsize=fs) 
+        # 
+        # else:
+        #     data_var = np.nanvar(dataset)
+        #     ax.annotate('Variance = {:.2f}'.format(data_var),\
+        #           (.02,.08), xycoords='axes fraction',fontsize=fs) 
+        axes.append(ax)
+        
+    axes[0].set_title('SLP anomaly (hPa)',fontsize = fs+2)
+    axes[1].set_title(r'U$_S$ anomaly (m/s)',fontsize=fs+2)
+    
+    # Set SLP lims
+    for ax in axes[::2]:
+        ax.set_ylim([-11.2,13.8])
+        ax.set_yticks([-8,0,8])
+    # Set u limes
+    for ax in axes[1::2]:
+        ax.set_ylim([-3.5,4.1])
+        ax.set_yticks([-2,0,2])
+        
+    
+    #plot LENS EM SLP
+    ax11 = fig.add_subplot(6,2,11)
+    ax11.plot(lens_hist.time,lens_hist_em_psl_anom,color='#777777')
+    ax11.annotate('k) LENS historical ensemble mean',(0.02,.86),xycoords = 'axes fraction',\
+                fontsize=fs)#,weight='bold') 
+    ax11.set_ylim([-2.6,2.6])
+    ax11.set_yticks([-2,0,2])
+    ax11.set_xlabel('Year')
+    
+    #plot LENS EM U
+    ax12 = fig.add_subplot(6,2,12)
+    ax12.plot(lens_hist.time,lens_hist_em_u10_anom,color='#555555')
+    ax12.annotate('l) LENS historical ensemble mean',(0.02,.86),xycoords = 'axes fraction',\
+                fontsize=fs)#,weight='bold')   
+    ax12.set_ylim([-.7,.8])
+    ax12.set_yticks([-0.5,0,0.5])
+    ax12.yaxis.set_tick_params(pad=-.25)
+    ax12.set_xlabel('Year')
+        
+    plt.subplots_adjust(left=0.04,right=0.99,top=0.97,bottom=0.05,wspace=0.1,hspace=0.25)
+    plt.rcParams['ytick.labelsize'] = fs - .5
+    plt.rcParams['xtick.labelsize'] = fs - .5
+        
+    # plt.savefig('Plots/Figure_S3_timeseries_for_search.png',dpi=600)
+        
+#%% Plot recon ensemble time series and all datasets as box and whiskers
+
+# Plot reconstruction timeseries
+times = [recon_time,recon_time,\
+         recon_time, recon_time]
+datasets = [cesm_recon_psl_ens, cesm_recon_u10_ens,\
+            scram_cesm_recon_psl_nat, scram_cesm_recon_u10_nat]
+#set up metadata to iterate through
+labels = ['a) Natural-prior reconstruction: original ensemble',\
+          'b) Natural-prior reconstruction: original ensemble',\
+          'c) Natural-prior reconstruction: scrambled, internal', \
+          'd) Natural-prior reconstruction: scrambled, internal']
+n_colors = 3
+cesm_recon_psl_colors = plt.cm.Blues(np.linspace(0.7,1,n_colors))
+cesm_recon_u_colors = plt.cm.YlOrBr(np.linspace(0.7,1,n_colors))
+
+colors = [cesm_recon_psl_colors, cesm_recon_u_colors,\
+          cesm_recon_psl_colors, cesm_recon_u_colors]
+fs = 8
 fig = plt.figure()
-fig.set_size_inches(6.5,6.5)
+fig.set_size_inches(6.5,4)
 axes = []
-for i in range(10):
+for i in range(4):
     
-    
-    ax = fig.add_subplot(6,2,i+1)
-    ax.tick_params(direction="in")
+    # Idx for tracking colored lines
+    j = 0
+    ax = fig.add_subplot(3,2,i+1)
     dataset = datasets[i]
     if i == 0 or i ==1:
         dataset = np.transpose(np.array(dataset))
     time = times[i]
     lab = labels[i]
     color = colors[i]
-    for ens in range(len(dataset)):
+    
+    # Get a range of members to plot based on values in ~1940
+    data_1940 = dataset[:,20]
+    data_1940_sort = np.sort(data_1940)
+    n_ens = len(dataset)
+    plot_ens = []
+    # Add ens containing max, min, and middle values
+    vals_to_plot = [min(data_1940_sort), max(data_1940_sort), \
+                    data_1940_sort[n_ens//2]]
+    for val in vals_to_plot:
+        plot_ens.append( np.where(data_1940 == val)[0][0])
+    
+    
+    for ens in range(n_ens):
         
         # Plot model data and scrambled recons
-        if type(color) == str:
-            col = color
+        if ens in plot_ens:
+            if type(color) == str:
+                col = color
+            else:
+                col = color[j]
+            lw_ens = 1
+            z = 1
+            j += 1
         else:
-            col = color[ens]
+            col = 'lightgray'
+            lw_ens = lw
+            z = 0
         try:
-            ax.plot(time,dataset[ens],linewidth=lw,color=col)
+            ax.plot(time, dataset[ens], linewidth=lw_ens, color=col, zorder = z)
         # Plot unscrambled recons
         except:
-            ax.plot(time,dataset[:,ens],linewidth=lw,color=col)
+            ax.plot(time, dataset[:,ens], linewidth=lw_ens, color=col, zorder = z)
     ax.annotate(lab,(0.02,.86),xycoords = 'axes fraction',\
-                fontsize=fs,weight='bold')    
+                fontsize=fs)#,weight='bold')    
     
     #for unscrambled ens, annotate variance of one member
     if i ==0 or i ==1:
-        data_var = np.var(dataset[ens,:])
-        ax.annotate('Variance of each member = {:.2f}'.format(data_var),\
+        data_var = np.var(dataset[0,:])
+        ax.annotate('Variance of 1st member = {:.1f}'.format(data_var),\
               (.02,.08), xycoords='axes fraction',fontsize=fs) 
     #for all other data, plot variance of all members (flattens members)
     else:
-        data_var = np.nanvar(dataset)
-        ax.annotate('Variance = {:.2f}'.format(data_var),\
+        data_var = np.nanvar(dataset[0,:])
+        ax.annotate('Variance of 1st member = {:.1f}'.format(data_var),\
               (.02,.08), xycoords='axes fraction',fontsize=fs) 
     axes.append(ax)
     
-axes[0].set_title('SLP anomaly (hPa)',fontsize = fs+2)
-axes[1].set_title(r'U$_S$ anomaly (m/s)',fontsize=fs+2)
+axes[0].set_title('SLP anomaly (hPa)',fontsize = fs+1)
+axes[1].set_title(r'U$_S$ anomaly (m/s)',fontsize=fs+1)
 
 # Set SLP lims
 for ax in axes[::2]:
-    ax.set_ylim([-11,14])
+    ax.set_ylim([-13,14.3])
     ax.set_yticks([-8,0,8])
-# Set u limes
+# Set u lims
 for ax in axes[1::2]:
-    ax.set_ylim([-3.5,4])
+    ax.set_ylim([-3.6,4.1])
     ax.set_yticks([-2,0,2])
     
 
-#plot LENS EM SLP
-ax11 = fig.add_subplot(6,2,11)
-ax11.plot(lens_hist.time,lens_hist_em_psl_anom,color='#777777')
-ax11.annotate('k) LENS historical ensemble mean',(0.02,.86),xycoords = 'axes fraction',\
-            fontsize=fs,weight='bold') 
-ax11.set_ylim([-2.6,2.6])
-ax11.set_yticks([-2,0,2])
-ax11.set_xlabel('Year')
+#plot SLP boxplots
+all_datasets = [scram_cesm_recon_psl_nat, scram_cesm_recon_u10_nat,\
+            scram_pace_recon_psl_nat, scram_pace_recon_u10_nat,\
+            lens_hist_psl_anom_nat, lens_hist_u10_anom_nat,\
+            pi_ctrl_ens_psl_anom, pi_ctrl_ens_u10_anom]
+flat_datasets = []
+for data in all_datasets:
+    data = np.array(data)
+    flat_data = data.flatten()
+    if np.isnan(flat_data).any():
+        first_nan_idx = np.argwhere(np.isnan(flat_data))[0][0]
+        flat_data = flat_data[0:first_nan_idx]
+    flat_datasets.append(flat_data)
 
-#plot LENS EM U
-ax12 = fig.add_subplot(6,2,12)
-ax12.plot(lens_hist.time,lens_hist_em_u10_anom,color='#555555')
-ax12.annotate('l) LENS historical ensemble mean',(0.02,.86),xycoords = 'axes fraction',\
-            fontsize=fs,weight='bold')   
-ax12.set_ylim([-.7,.8])
-ax12.set_yticks([-0.5,0,0.5])
-ax12.yaxis.set_tick_params(pad=-.25)
-ax12.set_xlabel('Year')
+# Plot SLP boxplots
+box_labs = ['Nat-prior\nrecon',\
+            'Anthro-prior\nrecon',\
+            'LENS HI\nmodel', 'PI Control\nmodel']
+hi_psl_col = '#ab3f50'
+pi_psl_col = '#b38184'
+hi_u10_col = '#674064'
+pi_u10_col = '#9a7fa9'
+fliers = dict(marker='o', markersize=5,
+                  linewidth = .3, markeredgecolor='gray',zorder=0)
+
+ax5 = fig.add_subplot(3,2,5)
+psl_bp = ax5.boxplot(flat_datasets[::2],positions = np.arange(4), \
+                      labels = box_labs, widths = .75, flierprops = fliers)
+ax5.annotate('e)',(0.02,.86),xycoords = 'axes fraction',fontsize=fs)
+ax5.set_ylim([-12,20])
+ax5.set_yticks([-8,0,8])
+psl_colors = [cesm_recon.psl_color,pace_recon.psl_color,\
+          pi_psl_col,hi_psl_col]
+psl_var = []
+u10_var = []
+j = 0
+for i in range(len(psl_bp['medians'])):
+    median = psl_bp['medians'][i]
+    median.set_color(psl_colors[i])
+    median.set_linewidth(2)
     
-plt.subplots_adjust(left=0.04,right=0.99,top=0.96,bottom=0.06,wspace=0.1)
-plt.rcParams['ytick.labelsize'] = fs
-plt.rcParams['xtick.labelsize'] = fs
+    psl_var.append('{:.1f}'.format(np.nanvar(all_datasets[j])))
+    u10_var.append('{:.1f}'.format(np.nanvar(all_datasets[j+1])))
+    j += 2
+
+# Annotate ensemble variance
+ax6 = ax5.twiny()
+ax6.set_xlim(ax5.get_xlim())
+ax6.set_xticks(ax5.get_xticks())
+ax6.set_xticklabels(psl_var)
+ax6.tick_params(pad = -12,length=0)
+
+# Plot U boxplots
+ax7 = fig.add_subplot(3,2,6)
+u10_bp = ax7.boxplot(flat_datasets[1::2],positions = np.arange(4),\
+                      labels = box_labs, widths = 0.75, flierprops = fliers)
+ax7.annotate('f)',(0.02,.86),xycoords = 'axes fraction',fontsize=fs)
+ax7.set_ylim([-3.5,5])
+ax7.set_yticks([-2,0,2])
+u10_colors = [cesm_recon.u10_color,pace_recon.g_u10_color,\
+          pi_u10_col,hi_u10_col]
+for i in range(len(box_labs)):
     
-if save_fig:
-    plt.savefig('Plots/Figure_5_timeseries_for_search.png',dpi=600)
-        
+    # Change median color
+    median = u10_bp['medians'][i]
+    median.set_color(u10_colors[i])
+    median.set_linewidth(2)
+    
+# Annotate ensemble variance
+ax8 = ax7.twiny()
+ax8.set_xlim(ax7.get_xlim())
+ax8.set_xticks(ax7.get_xticks())
+ax8.set_xticklabels(u10_var)
+ax8.tick_params(pad = -12,length=0)
+
+    
+plt.subplots_adjust(left=0.04,right=0.99,top=0.94,bottom=0.08,wspace=0.1,hspace=0.25)
+plt.rcParams['ytick.labelsize'] = fs  - 0.5
+plt.rcParams['xtick.labelsize'] = fs  - 0.5
+    
+# plt.savefig('Plots/Figure_5_timeseries_for_search.png',dpi=600)
 
 #%% 6. Search model for occurrences exceeding recon magnitudes
 
@@ -664,17 +875,17 @@ def make_event_table(vname,pi_cesm_data,hi_cesm_data,pi_pace_data,hi_pace_data):
     for i in range(n_events):
         
         #1st index is the mean, 1nd is the count based on the upper mag (lower bound of count)
-        pi_cesm_text = str(pi_cesm_data[1][i]) + ' ('+str(pi_cesm_data[2][i])+')'
         hi_cesm_text = str(hi_cesm_data[1][i]) + ' ('+str(hi_cesm_data[2][i])+')'
+        pi_cesm_text = str(pi_cesm_data[1][i]) + ' ('+str(pi_cesm_data[2][i])+')'
         
-        pi_pace_text = str(pi_pace_data[1][i]) + ' ('+str(pi_pace_data[2][i])+')'
         hi_pace_text = str(hi_pace_data[1][i]) + ' ('+str(hi_pace_data[2][i])+')'
+        pi_pace_text = str(pi_pace_data[1][i]) + ' ('+str(pi_pace_data[2][i])+')'
         
-        text_event_i = [pi_cesm_text,hi_cesm_text,pi_pace_text,hi_pace_text]
+        text_event_i = [hi_cesm_text,pi_cesm_text,hi_pace_text,pi_pace_text]
         text.append(text_event_i)
         
-    columns = ['PI Ctrl\nCESM recon','LENS Hist Int\nCESM recon',\
-                'PI Ctrl\nPACE recon','LENS Hist Int\nPACE recon'] 
+    columns = ['LENS HI\nNatural-prior recon','PI Ctrl\nNatural-prior recon',\
+               'LENS HI\nAnthro-prior recon','PI Ctrl\nAnthro-prior recon'] 
     tb = ax.table(cellText=text,
                           rowLabels=events,
                           #rowColours=colors,
@@ -778,10 +989,7 @@ for i in range(n_events):
 
 #%% 9. Make Figures 6 and 7: plot recon magnitudes, sigmas, and num of occurrences in models
 
-cesm_run_psl_col = '#1f3a6f'
-cesm_run_u_col = 'chocolate'
-pace_run_psl_col = '#476ebb'
-pace_run_u_col = '#ffb752'
+
 
 def make_probability_fig(vname,cesm_thresh,pace_thresh,\
                          cesm_z_scores,pace_z_scores,\
@@ -793,20 +1001,20 @@ def make_probability_fig(vname,cesm_thresh,pace_thresh,\
     
     
     if vname == 'psl':
-        cesm_run_col = cesm_run_psl_col
-        pace_run_col = pace_run_psl_col
+        cesm_run_col = cesm_recon.psl_color
+        pace_run_col = pace_recon.psl_color
         hi_col = hi_psl_col
         pi_col = pi_psl_col
         units = '(hPa)'
     else:
-        cesm_run_col = cesm_run_u_col
-        pace_run_col = pace_run_u_col
-        hi_col = hi_u_col
-        pi_col = pi_u_col
+        cesm_run_col = cesm_recon.u10_color
+        pace_run_col = pace_recon.u10_color
+        hi_col = hi_u10_col
+        pi_col = pi_u10_col
         units = '(m/s)'
     
     fig = plt.figure()
-    fig.set_size_inches(5.75,4.45)
+    fig.set_size_inches(6.5,4.45)
     spec = gridspec.GridSpec(ncols=2, nrows=3,wspace=0.23,
                              hspace=0.2, height_ratios=[1, 1.2, 1.2])
     #adjust figure properties
@@ -832,10 +1040,10 @@ def make_probability_fig(vname,cesm_thresh,pace_thresh,\
     error = np.array(list(zip(lower_err,upper_err))).T
     ax0.errorbar(events,mean_cesm_thresh,fmt='o',yerr=error,capsize=cs,\
                  color=cesm_run_col,ms=ms)
-    ax0.set_title('CESM LM reconstruction')
+    ax0.set_title(cesm_recon.name + 'struction')
     
     if vname == 'psl':
-        plt.ylim([1.2,5.1])
+        plt.ylim([1,5.1])
         plt.ylabel('Magnitude '+units,labelpad=8.5)
     else:
         plt.ylim([0.25,1.6])
@@ -853,9 +1061,9 @@ def make_probability_fig(vname,cesm_thresh,pace_thresh,\
                  color=pace_run_col,ms=ms)
     plt.xticks(events)
     plt.xlim([-0.5,n_events+.5])
-    plt.title('PACE reconstruction')
+    plt.title(pace_recon.name + 'struction')
     if vname == 'psl':
-        plt.ylim([1.2,5.1])
+        plt.ylim([1,5.1])
         plt.ylabel('Magnitude '+units,labelpad=10.5)
     else:
         plt.ylim([0.25,1.6])
@@ -866,8 +1074,8 @@ def make_probability_fig(vname,cesm_thresh,pace_thresh,\
     
     ax1 = fig.add_subplot(spec[2])
     #yerr = 0.1 for all events, based on z score analysis above
-    ax1.errorbar(events-space,cesm_z_scores[0],yerr=0.1,label='PI Ctrl',color=pi_col,fmt='o',capsize=cs-2.5,ms=ms)
-    ax1.errorbar(events+space,cesm_z_scores[1],yerr=0.1,label='LENS Hist Int',color=hi_col,fmt='o',capsize=cs-2.5,ms=ms)
+    ax1.errorbar(events-space,cesm_z_scores[1],yerr=0.1,label='LENS HI',color=hi_col,fmt='o',capsize=cs-2.5,ms=ms)
+    ax1.errorbar(events+space,cesm_z_scores[0],yerr=0.1,label='PI Control',color=pi_col,fmt='o',capsize=cs-2.5,ms=ms)
     plt.grid(alpha=.5,axis='y')
     [plt.axvline(x,linewidth=0.5,alpha=0.5,color='gray') for x in events-.5]
     ax1.set_xlim([-0.5,n_events+.5])
@@ -883,8 +1091,8 @@ def make_probability_fig(vname,cesm_thresh,pace_thresh,\
     ax1.annotate('c)',(0.01,.88),xycoords = 'axes fraction',fontsize=fs+2,weight='bold')
     
     ax2 = fig.add_subplot(spec[3])
-    ax2.errorbar(events-space,pace_z_scores[0],yerr=0.1,label='PI Ctrl',color=pi_col,fmt='o',capsize=cs-2.5,ms=ms)
-    ax2.errorbar(events+space,pace_z_scores[1],yerr=0.1,label='LENS Hist Int',color=hi_col,fmt='o',capsize=cs-2.5,ms=ms)
+    ax2.errorbar(events-space,pace_z_scores[1],yerr=0.1,label='LENS HI',color=hi_col,fmt='o',capsize=cs-2.5,ms=ms)
+    ax2.errorbar(events+space,pace_z_scores[0],yerr=0.1,label='PI Control',color=pi_col,fmt='o',capsize=cs-2.5,ms=ms)
     plt.grid(alpha=.5,axis='y')
     [plt.axvline(x,linewidth=0.5,alpha=0.5,color='gray') for x in events-.5]
     ax2.set_xlim([-0.5,n_events+.5])
@@ -909,21 +1117,21 @@ def make_probability_fig(vname,cesm_thresh,pace_thresh,\
     
     #Plot CESM occurrences
     ax3 = fig.add_subplot(spec[4])
-    #LENS PI
-    ax3.bar(events-space,pi_cesm_event_cts_10ka[1],label='PI Ctrl',width=width,color=pi_col)
-    lower_pi_err = np.array(pi_cesm_event_cts_10ka[1]) - np.array(pi_cesm_event_cts_10ka[0])
-    upper_pi_err = np.array(pi_cesm_event_cts_10ka[2]) - np.array(pi_cesm_event_cts_10ka[1])
-    pi_cesm_err = np.array(list(zip(lower_pi_err,upper_pi_err))).T
-    ax3.errorbar(events-space,pi_cesm_event_cts_10ka[1],fmt='o',yerr=pi_cesm_err,capsize=cap,\
-                 color='k',elinewidth=ewidth,ms=ms)
     #LENS hist
-    ax3.bar(events+space,hi_cesm_event_cts_10ka[1],label='LENS Hist Int',\
+    ax3.bar(events-space,hi_cesm_event_cts_10ka[1],label='LENS HI',\
             width=width,color=hi_col)
     lower_hist_err = np.array(hi_cesm_event_cts_10ka[1]) - np.array(hi_cesm_event_cts_10ka[0])
     upper_hist_err = np.array(hi_cesm_event_cts_10ka[2]) - np.array(hi_cesm_event_cts_10ka[1])
     hist_cesm_err = np.array(list(zip(lower_hist_err,upper_hist_err))).T
-    ax3.errorbar(events+space,hi_cesm_event_cts_10ka[1],fmt='o',yerr=hist_cesm_err,\
+    ax3.errorbar(events-space,hi_cesm_event_cts_10ka[1],fmt='o',yerr=hist_cesm_err,\
                  capsize=cap, color='k',ms=ms,elinewidth=ewidth)
+    #LENS PI
+    ax3.bar(events+space,pi_cesm_event_cts_10ka[1],label='PI Control',width=width,color=pi_col)
+    lower_pi_err = np.array(pi_cesm_event_cts_10ka[1]) - np.array(pi_cesm_event_cts_10ka[0])
+    upper_pi_err = np.array(pi_cesm_event_cts_10ka[2]) - np.array(pi_cesm_event_cts_10ka[1])
+    pi_cesm_err = np.array(list(zip(lower_pi_err,upper_pi_err))).T
+    ax3.errorbar(events+space,pi_cesm_event_cts_10ka[1],fmt='o',yerr=pi_cesm_err,capsize=cap,\
+                 color='k',elinewidth=ewidth,ms=ms)
     
     ax3.set_ylim([0,225])
     ax3.legend(fontsize=8,loc='upper right',ncol=2)
@@ -932,7 +1140,7 @@ def make_probability_fig(vname,cesm_thresh,pace_thresh,\
         ax3.set_ylabel('Occurrences per 10ka',labelpad=1.25)
     else:
         ax3.set_ylabel('Occurrences per 10ka',labelpad=2)
-    ax3.set_xlabel('Number of years in event',labelpad=1)
+    ax3.set_xlabel('Event duration (years)',labelpad=1)
     ax3.set_xticks(events)
     ax3.set_xlim([-0.5,n_events+.5])
     ax3.annotate('e)',(0.01,.86888),xycoords = 'axes fraction',fontsize=fs+2,weight='bold')
@@ -941,21 +1149,21 @@ def make_probability_fig(vname,cesm_thresh,pace_thresh,\
     #plot PACE occurrences----------------------------------------
     
     ax5 = fig.add_subplot(spec[5])
-    #LENS PI
-    ax5.bar(events-space,pi_pace_event_cts_10ka[1],label='PI Ctrl',width=width,color=pi_col)
-    lower_pi_err = np.array(pi_pace_event_cts_10ka[1]) - np.array(pi_pace_event_cts_10ka[0]) 
-    upper_pi_err = np.array(pi_pace_event_cts_10ka[2]) - np.array(pi_pace_event_cts_10ka[1])
-    pi_pace_err = np.array(list(zip(lower_pi_err,upper_pi_err))).T
-    ax5.errorbar(events-space,pi_pace_event_cts_10ka[1],fmt='o',yerr=pi_pace_err,capsize=cap,\
-                 color='k',elinewidth=ewidth,ms=ms)
     #LENS hist
-    ax5.bar(events+space,hi_pace_event_cts_10ka[1],label='LENS Hist Int',\
+    ax5.bar(events-space,hi_pace_event_cts_10ka[1],label='LENS HI',\
             width=width,color=hi_col)
     lower_hist_err = np.array(hi_pace_event_cts_10ka[1]) - np.array(hi_pace_event_cts_10ka[0])
     upper_hist_err = np.array(hi_pace_event_cts_10ka[2]) - np.array(hi_pace_event_cts_10ka[1])
     hist_pace_err = np.array(list(zip(lower_hist_err,upper_hist_err))).T
-    ax5.errorbar(events+space,hi_pace_event_cts_10ka[1],fmt='o',yerr=hist_pace_err,\
+    ax5.errorbar(events-space,hi_pace_event_cts_10ka[1],fmt='o',yerr=hist_pace_err,\
                  capsize=cap, color='k',ms=ms,elinewidth=ewidth)
+    #LENS PI
+    ax5.bar(events+space,pi_pace_event_cts_10ka[1],label='PI Control',width=width,color=pi_col)
+    lower_pi_err = np.array(pi_pace_event_cts_10ka[1]) - np.array(pi_pace_event_cts_10ka[0]) 
+    upper_pi_err = np.array(pi_pace_event_cts_10ka[2]) - np.array(pi_pace_event_cts_10ka[1])
+    pi_pace_err = np.array(list(zip(lower_pi_err,upper_pi_err))).T
+    ax5.errorbar(events+space,pi_pace_event_cts_10ka[1],fmt='o',yerr=pi_pace_err,capsize=cap,\
+                 color='k',elinewidth=ewidth,ms=ms)
     
     ax5.set_ylim([0,1200])
     ax5.grid(linewidth = 0.5,color='gray',axis='y',alpha=0.5)
@@ -963,20 +1171,20 @@ def make_probability_fig(vname,cesm_thresh,pace_thresh,\
         ax5.set_ylabel('Occurrences per 10ka',labelpad=-.5)
     else:
         ax5.set_ylabel('Occurrences per 10ka',labelpad=1)
-    ax5.set_xlabel('Number of years in event',labelpad=1)
+    ax5.set_xlabel('Event duration (years)',labelpad=1)
     ax5.set_xticks(events)
     ax5.set_xlim([-0.5,n_events+.5])
     ax5.legend(fontsize=8,loc='upper right',ncol=2)
     ax5.annotate('f)',(0.02,.88),xycoords = 'axes fraction',fontsize=fs+2,weight='bold')
     
-    axes = [ax0,ax1,ax2,ax3,ax4,ax5,ax6]
+    axes = [ax0,ax1,ax2,ax3,ax5]
     for ax in axes:
         ax.set_xticks(events)
         ax.set_xlim([-0.5,n_events+.5])
     #-----------
     
     
-    plt.subplots_adjust(top=.95,left=.08,right=.995,bottom = 0.08,) #can't adjust wspace, hspace using gridspec
+    plt.subplots_adjust(top=.95,left=.08,right=.98,bottom = 0.08,) #can't adjust wspace, hspace using gridspec
     
     return
 
