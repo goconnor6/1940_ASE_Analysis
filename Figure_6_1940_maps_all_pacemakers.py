@@ -48,8 +48,6 @@ for ens in ens_list:
     data = ds.get(vname)
     
     #put in anom space from 61-90
-    #this calculates the mean at every location and subtracts it from every location
-    #FIX: need to replace with the ensemble mean
     data_anom = data - np.mean(data[41:71,:,:],axis=0)
     data_year = data_anom.sel(time = year)
     if vname == 'psl':
@@ -74,9 +72,7 @@ def make_map():
         print(i)
         #plot_num goes from left to right, top to bottom. Does SLP figs first. 
         fig.add_subplot(5,n_cols,i+1)
-                                   
-        # map = Basemap(projection='gall',llcrnrlat=-76,urcrnrlat=-60,\
-        #                   llcrnrlon=220,urcrnrlon=290,resolution='c')
+
         map = Basemap(projection='gall',llcrnrlat=-80,urcrnrlat=-30,\
                           llcrnrlon=150,urcrnrlon=320,resolution='c')
             
@@ -135,13 +131,13 @@ make_map()
 
 #%% Figure 6 calcs - plot anoamlies in ensemble mean for all pacemakers for one variable
 
-# Get pacemaker EM data in anomalies and 2sigma values of the EM
+# Get pacemaker EM data in anomalies and 1sigma values of the EM
 
 def calc_pace_anoms_signif(model_name, vname):
     """
     Get pacemaker ensemble mean data, put in anomaly space relative to 1961-1990
-    Calculate variance of EM data and 2 sigma value at each gridpoint
-    Create mask for anomalies less than 2 sigma
+    Calculate variance of EM data and 1 sigma value at each gridpoint
+    Create mask for anomalies less than 1 sigma
 
     Parameters
     ----------
