@@ -4,7 +4,7 @@
 Created on Tue Nov 29 13:10:12 2022
 
 Plot PACE simulation ensemble mean and 2 selected members for 5 years
-Makes figure 4 in O'Connor et al. 1940 paper
+Makes figure 5 in O'Connor et al. 1940 paper
 
 @author: gemma
 """
