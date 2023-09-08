@@ -12,7 +12,7 @@ Includes retreiving data and stats functions.
 import xarray as xr
 import numpy as np
 from scipy import stats, signal
-from mpl_toolkits import basemap
+
 
 #%%
 
@@ -422,3 +422,52 @@ def calc_1d_ce(x,v,return_format = 'string'):
         ce_formatted = CE
     
     return ce_formatted
+
+
+def calc_trends_simple(time,data):
+    """
+    calculatees trends with linear regress
+    uses all data points for degrees of freeedom for determining significance
+    signficance is simply the p value in the stats linregress package
+    """
+    slope, intercept, r_value, p_value, std_err = stats.linregress(time, data)
+    slope_str = '{:.2f}'.format(slope*100)+'/cent'
+    p_val_str = '{:.3f}'.format(p_value)
+    
+    return slope_str,p_val_str
+
+
+def trend_sig_dof(x,y):
+    """
+    x = independent var, i.e. time
+    y = dependent var, i.e. climate data
+    trend calc is same as simple func
+    significanec accounts for autocorrelation in samplesize
+    uses t-statistic to calculate 95% CI on estimate of slope
+    See page 52 of Hartmann Regression Notes (552_Notes_3)
+    
+    **copy and pasted from my_stats during GRL revisions
+
+    """
+    
+    regress = stats.linregress(x,y)
+    trend = regress[0]
+    intcpt = regress[1]
+    fit = intcpt + trend * x
+    resids = y - fit
+    
+    #calc autocorr of resids at lag 1
+    r_lag1 = stats.pearsonr(resids[0:-1],resids[1:])[0]
+    
+    #calculate effective n using bretherton et al., 1999
+    n = len(y)
+    n_eff = n * ((1-abs(r_lag1)) / (1+abs(r_lag1)))
+    
+    #calculate t stats and bounds #1-0.025 is 2 tail, 1-0.05 is 1 tail
+    t_crit = stats.t.ppf(1-0.025, n_eff-2)
+    sd_resid = np.sum(resids**2) / (n_eff-2) #sd=std ev
+    sd_trend = sd_resid / (np.sqrt(n_eff) * np.std(x))
+    
+    conf_int_val = t_crit * sd_trend
+    
+    return [trend - conf_int_val, trend+conf_int_val], trend, intcpt

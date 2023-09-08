@@ -98,16 +98,17 @@ for i in range(n_recons):
 
 #%%plot reconstructions and ERA5
 
-fs = 10 
-lw = 1.5
+fs = 9
+lw = 1.2
 
 fig = plt.figure()
-fig.set_size_inches(6,5)
+fig.set_size_inches(4.5,4.5)
 fig.add_subplot(211)
 
 #plot SLP-----------------
 
-colors = [cesm_recon.psl_color,'#2171b5',pace_recon.psl_color,'#8c96c6','#88419d']
+
+colors = [cesm_recon.psl_color,'#fc9272',pace_recon.psl_color,'#cb181d','#67000d']
 z= [1,0,0,0,0]
 for i in range(n_recons):
     try:
@@ -124,14 +125,14 @@ plt.xlim([recon_start-2,recon_stop+2])
 plt.ylim([-13,8.1])
 plt.xticks(fontsize=fs-2)
 #plt.rcParams['xtick.major.pad']='0.1'
-plt.yticks(fontsize=fs-2)
-plt.ylabel('SLP anomaly (hPa)',fontsize=fs-1,labelpad=0)
+plt.yticks([-5,0,5],fontsize=fs-2)
+plt.ylabel('             SLP anomaly (hPa)',fontsize=fs-1,labelpad=0.1)
 plt.xlabel('Year',fontsize=fs-1,labelpad=0.5)
 
 #plot U10----------------
 fig.add_subplot(212)
 
-colors = [cesm_recon.u10_color,'#fec44f',pace_recon.u10_color,'#78c679','#238443']
+colors = [cesm_recon.u10_color,'#bcbddc',pace_recon.u10_color,'#756bb1','#54278f']
 z = [1,0,0,0,0]
 for i in range(n_recons):
     try:
@@ -148,15 +149,15 @@ plt.legend(fontsize = fs-3,loc='lower left',ncol=3,frameon = True,\
 plt.xlim([recon_start-2,recon_stop+2])
 plt.xticks(fontsize=fs-2)
 #plt.rcParams['xtick.major.pad']='0.1'
-plt.yticks(fontsize=fs-2)
-plt.ylabel(r'U$_S$ anomaly (m/s)',fontsize=fs-1,labelpad=0)
+plt.yticks([-1,0,1],fontsize=fs-2)
+plt.ylabel(r'            U$_S$ anomaly (m/s)',fontsize=fs-1,labelpad=0)
 plt.xlabel('Year',fontsize=fs-1,labelpad=0.5)
 
 
-plt.subplots_adjust(wspace=0.04,hspace=0.2,top = 0.98,bottom=0.1,right=0.98,left=0.09)
+plt.subplots_adjust(wspace=0.04,hspace=0.2,top = 0.98,bottom=0.1,right=0.98,left=0.1)
 
-fig.text(0.095,0.945,'a',fontsize=fs,weight='bold')
-fig.text(0.095,0.465,'b',fontsize=fs,weight='bold')
+fig.text(0.105,0.945,'a',fontsize=fs+1,weight='bold')
+fig.text(0.105,0.465,'b',fontsize=fs+1,weight='bold')
 
-# plt.savefig('Plots/Figure_A1_ASE_timeseries.png', bbox_inches = 'tight',dpi = 600)
+plt.savefig('Plots/Figure_A1_ASE_timeseries_revised_colors.png', bbox_inches = 'tight',dpi = 600)
 
