@@ -6,7 +6,7 @@ Created on Thu Nov 11 09:57:13 2021
 make maps of TAS, SLP, and US anomalies for specified years 
 in two reconstructions.
 
-Used to create Figures 2, 3, and S2 in O'Connor et al. 1940 analysis
+Used to create Figures 2, 3, and A2 in O'Connor et al. 1940 analysis
 
 @author: gemma
 """
@@ -20,8 +20,6 @@ from mpl_toolkits.basemap import Basemap
 from matplotlib.patches import Polygon
 from Functions_1940_analysis import load_3d_data, region_dict
 from Datasets_1940_Analysis import *
-# cesm_recon, pace_recon, cesm_ice_recon,\
-#     cesm_coral_recon, pace_ice_recon, pace_coral_recon, recon_dir, verif_dir
 
 
 
@@ -34,7 +32,7 @@ recon1, recon2 = cesm_recon, pace_recon
 # For Figure 3
 # recon1, recon2 = cesm_ice_recon, cesm_coral_recon
 
-# For Figure S2
+# For Figure A2
 # recon1, recon2 = pace_ice_recon, pace_coral_recon 
 
 #%% Get data
