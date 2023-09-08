@@ -9,5 +9,4 @@ Functions_1940_analysis.py
 Metadata and methods specific to certain types of datasets are stored in 
 Datasets_1940_Analysis.py, which contains a Reconstruction class and a Model class. 
 
-All datasets used in the analyses are available online (see O'Connor et al. for locations).
-All data should be stored in the appropriate subdirectories in the Data directory. 
+All datasets used in the analyses are available online (see O'Connor et al., 2023 for locations).
