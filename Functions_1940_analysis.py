@@ -261,7 +261,6 @@ def load_3d_data(path, vname, time_per, anom_ref = None, region = None, \
 
 
 
-# Need to update this one for Figure S1
 def load_1d_data_raw_times(path,var,time_per,region,anom_ref=None):
     
     """
@@ -445,8 +444,7 @@ def trend_sig_dof(x,y):
     significanec accounts for autocorrelation in samplesize
     uses t-statistic to calculate 95% CI on estimate of slope
     See page 52 of Hartmann Regression Notes (552_Notes_3)
-    
-    **copy and pasted from my_stats during GRL revisions
+
 
     """
     
