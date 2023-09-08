@@ -20,14 +20,11 @@ from mpl_toolkits.basemap import Basemap
 from matplotlib.patches import Polygon
 from Functions_1940_analysis import load_3d_data, region_dict
 from Datasets_1940_Analysis import *
-# cesm_recon, pace_recon, cesm_ice_recon,\
-#     cesm_coral_recon, pace_ice_recon, pace_coral_recon, recon_dir, verif_dir
 
 
 
 
-start,stop = 1937,1943 
-# start,stop = 1954,1959 
+start,stop = 1937,1943  
 
 # For Figure 2
 recon1, recon2 = cesm_recon, pace_recon
